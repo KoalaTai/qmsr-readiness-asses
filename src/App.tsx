@@ -138,7 +138,7 @@ function App() {
                 </div>
                 <RadioGroup
                   id={question.id}
-                  value={responses[question.id] ?? undefined}
+                  value={responses[question.id] || undefined}
                   onValueChange={(value) => handleResponseChange(question.id, value as ResponseValue)}
                   className="flex flex-col sm:flex-row gap-3"
                 >
