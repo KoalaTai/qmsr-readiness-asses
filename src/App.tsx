@@ -36,8 +36,8 @@ function App() {
   const [showResults, setShowResults] = useState(false)
   const [resultData, setResultData] = useState<ResultData | null>(null)
 
-  const allQuestionsAnswered = Object.values(responses).every((r) => r !== null)
-  const answeredCount = Object.values(responses).filter((r) => r !== null).length
+  const allQuestionsAnswered = questions.every((q) => responses[q.id] !== null && responses[q.id] !== undefined)
+  const answeredCount = questions.filter((q) => responses[q.id] !== null && responses[q.id] !== undefined).length
 
   const handleResponseChange = (questionId: string, value: ResponseValue) => {
     setResponses((prev) => ({ ...prev, [questionId]: value }))
@@ -138,7 +138,7 @@ function App() {
                 </div>
                 <RadioGroup
                   id={question.id}
-                  value={responses[question.id] || ''}
+                  value={responses[question.id] ?? undefined}
                   onValueChange={(value) => handleResponseChange(question.id, value as ResponseValue)}
                   className="flex flex-col sm:flex-row gap-3"
                 >
