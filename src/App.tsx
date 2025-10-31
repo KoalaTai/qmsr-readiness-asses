@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,8 @@ import {
   Printer,
   Copy,
   ArrowClockwise,
-  Phone
+  Phone,
+  EnvelopeSimple
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import {
@@ -28,6 +29,7 @@ import {
   type ResponseValue,
   type ResultData
 } from '@/lib/assessment-data'
+import { trackEvent } from '@/lib/analytics'
 
 function App() {
   const [responses, setResponses] = useState<AssessmentResponses>(
@@ -36,11 +38,16 @@ function App() {
   const [showResults, setShowResults] = useState(false)
   const [resultData, setResultData] = useState<ResultData | null>(null)
 
+  useEffect(() => {
+    trackEvent('assessment_started')
+  }, [])
+
   const allQuestionsAnswered = questions.every((q) => responses[q.id] !== null && responses[q.id] !== undefined)
   const answeredCount = questions.filter((q) => responses[q.id] !== null && responses[q.id] !== undefined).length
 
   const handleResponseChange = (questionId: string, value: ResponseValue) => {
     setResponses((prev) => ({ ...prev, [questionId]: value }))
+    trackEvent('question_answered', { questionId, value })
   }
 
   const handleSubmit = () => {
@@ -49,6 +56,13 @@ function App() {
     const data = getResultData(score, maxScore)
     setResultData(data)
     setShowResults(true)
+    
+    trackEvent('assessment_completed', {
+      score,
+      maxScore,
+      percentage: data.percentage,
+      category: data.category
+    })
     
     setTimeout(() => {
       document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' })
@@ -60,10 +74,12 @@ function App() {
     setShowResults(false)
     setResultData(null)
     window.scrollTo({ top: 0, behavior: 'smooth' })
+    trackEvent('assessment_reset')
   }
 
   const handlePrint = () => {
     window.print()
+    trackEvent('results_printed', { category: resultData?.category })
   }
 
   const handleCopy = () => {
@@ -71,6 +87,15 @@ function App() {
     const text = formatResultsText(responses, resultData)
     navigator.clipboard.writeText(text)
     toast.success('Results copied to clipboard!')
+    trackEvent('results_copied', { category: resultData.category })
+  }
+
+  const handleEmail = () => {
+    if (!resultData) return
+    const subject = encodeURIComponent('QMSR Readiness Assessment Results')
+    const body = encodeURIComponent(formatResultsText(responses, resultData))
+    window.location.href = `mailto:?subject=${subject}&body=${body}`
+    trackEvent('results_emailed', { category: resultData.category })
   }
 
   const getCategoryIcon = (category: string) => {
@@ -105,6 +130,14 @@ function App() {
       <div className="min-h-screen bg-background py-8 px-4 md:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <header className="mb-8 text-center">
+          <div className="flex justify-center mb-6 no-print">
+            <Button size="lg" asChild>
+              <a href="https://qms.coach/book" target="_blank" rel="noopener noreferrer">
+                <Phone className="mr-2" />
+                Book a Call
+              </a>
+            </Button>
+          </div>
           <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight mb-3">
             QMSR Readiness Snapshot
           </h1>
@@ -323,13 +356,17 @@ function App() {
                       Book a Call
                     </a>
                   </Button>
-                  <Button size="lg" variant="outline" onClick={handlePrint}>
-                    <Printer className="mr-2" />
-                    Print / Save PDF
+                  <Button size="lg" variant="outline" onClick={handleEmail}>
+                    <EnvelopeSimple className="mr-2" />
+                    Email Results
                   </Button>
                   <Button size="lg" variant="outline" onClick={handleCopy}>
                     <Copy className="mr-2" />
-                    Copy Results
+                    Copy
+                  </Button>
+                  <Button size="lg" variant="outline" onClick={handlePrint}>
+                    <Printer className="mr-2" />
+                    Print / PDF
                   </Button>
                   <Button size="lg" variant="outline" onClick={handleReset}>
                     <ArrowClockwise className="mr-2" />

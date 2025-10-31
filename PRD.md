@@ -41,25 +41,41 @@ This tool combines form interaction, scoring logic, result categorization, actio
 - **Success criteria**: All 12 areas listed with user's response; easy to scan and identify "No" or "Partially" items
 
 ### 5. Export & Share Capabilities
-- **Functionality**: Print/PDF export, copy results to clipboard, reset assessment
+- **Functionality**: Print/PDF export, copy results to clipboard, email results, reset assessment
 - **Purpose**: Enable users to save, share with stakeholders, or use results in planning sessions
-- **Trigger**: User clicks "Print/Save PDF", "Copy Results", or "Reset Assessment" buttons
-- **Progression**: Click Print → Browser print dialog → Save as PDF | Click Copy → Results formatted → Clipboard confirmation | Click Reset → Form clears → Start over
-- **Success criteria**: Print includes all results and action plans; copy produces readable text format; reset clears all selections
+- **Trigger**: User clicks "Print/PDF", "Copy", "Email Results", or "Reset" buttons
+- **Progression**: Click Print → Browser print dialog → Save as PDF | Click Copy → Results formatted → Clipboard confirmation | Click Email → Opens mailto with prefilled results | Click Reset → Form clears → Start over
+- **Success criteria**: Print includes all results and action plans; copy produces readable text format; email pre-fills subject and body; reset clears all selections
 
 ### 6. Call-to-Action Integration
-- **Functionality**: "Book a Call" button prominently displayed in results section
-- **Purpose**: Convert qualified leads by offering expert consultation at the moment of highest engagement (post-results)
-- **Trigger**: Results panel includes CTA button
-- **Progression**: View results → Recognize gaps → Click "Book a Call" → Opens booking URL
-- **Success criteria**: CTA visible and accessible; configurable URL (placeholder for now)
+- **Functionality**: "Book a Call" button prominently displayed in header and results section
+- **Purpose**: Convert qualified leads by offering expert consultation at key moments (initial landing and post-results)
+- **Trigger**: Persistent header CTA visible on load; results panel includes CTA button
+- **Progression**: View page → See header CTA | View results → Recognize gaps → Click "Book a Call" → Opens booking URL
+- **Success criteria**: CTA visible and accessible on all screen sizes; configurable URL; tracks user engagement
+
+### 7. Privacy-Friendly Analytics
+- **Functionality**: Client-side event tracking for assessment starts, completions, question answers, and export actions
+- **Purpose**: Understand user behavior, measure completion rates, and identify drop-off points without compromising privacy
+- **Trigger**: Automatic tracking on key user actions (start, answer, submit, export, reset)
+- **Progression**: User action → Event logged to localStorage → Accessible via console for analysis
+- **Success criteria**: No external server calls; data stored locally only; provides completion/drop-off metrics
+
+### 8. SEO & Social Sharing
+- **Functionality**: Meta tags, Open Graph tags, and Twitter card metadata
+- **Purpose**: Improve discoverability and enable rich social sharing previews
+- **Trigger**: Page load; social platform link preview
+- **Progression**: User shares link → Platform fetches metadata → Rich preview displays
+- **Success criteria**: Title, description, and image display correctly on Facebook, Twitter, LinkedIn
 
 ## Edge Case Handling
 - **Incomplete submissions** - Submit button disabled until all 12 questions answered; visual indicator shows progress
 - **No JavaScript** - Graceful degradation with message prompting modern browser use
 - **Print formatting** - CSS ensures clean, professional PDF output with page breaks and branding
-- **Mobile users** - Touch-friendly radio buttons; responsive layout; scrollable results
-- **Accidental reset** - Brief confirmation or undo-friendly design (form retains state until deliberate reset)
+- **Mobile users** - Touch-friendly radio buttons; responsive layout; scrollable results; persistent header CTA
+- **Accidental reset** - Form retains state until deliberate reset; all data cleared on reset
+- **Analytics privacy** - All tracking data stored locally (localStorage); no external servers; user can clear data
+- **Email client compatibility** - mailto pre-fills subject and body; degrades gracefully if no email client configured
 
 ## Design Direction
 The design should evoke trust, professionalism, and clarity—balancing the serious, regulated nature of medical device quality management with an approachable, coaching tone. It should feel like a premium healthcare/consulting tool: clean, modern, and evidence-based. A minimal interface serves the content best, reducing cognitive load and emphasizing the assessment flow and results.
