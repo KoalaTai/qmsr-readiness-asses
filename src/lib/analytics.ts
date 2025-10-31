@@ -4,7 +4,7 @@ export interface AnalyticsEvent {
   properties?: Record<string, unknown>
 }
 
-export const trackEvent = (eventName: string, properties?: Record<string, unknown>) => {
+export const trackEvent = async (eventName: string, properties?: Record<string, unknown>) => {
   try {
     const event: AnalyticsEvent = {
       event: eventName,
@@ -12,38 +12,36 @@ export const trackEvent = (eventName: string, properties?: Record<string, unknow
       properties
     }
     
-    const existingEvents = localStorage.getItem('qmsr_analytics')
-    const events: AnalyticsEvent[] = existingEvents ? JSON.parse(existingEvents) : []
+    const events = await window.spark.kv.get<AnalyticsEvent[]>('qmsr_analytics') ?? []
     events.push(event)
     
     const maxEvents = 100
     const trimmedEvents = events.slice(-maxEvents)
-    localStorage.setItem('qmsr_analytics', JSON.stringify(trimmedEvents))
+    await window.spark.kv.set('qmsr_analytics', trimmedEvents)
   } catch (error) {
     console.error('Analytics tracking error:', error)
   }
 }
 
-export const getAnalytics = (): AnalyticsEvent[] => {
+export const getAnalytics = async (): Promise<AnalyticsEvent[]> => {
   try {
-    const existingEvents = localStorage.getItem('qmsr_analytics')
-    return existingEvents ? JSON.parse(existingEvents) : []
+    return await window.spark.kv.get<AnalyticsEvent[]>('qmsr_analytics') ?? []
   } catch (error) {
     console.error('Analytics retrieval error:', error)
     return []
   }
 }
 
-export const clearAnalytics = () => {
+export const clearAnalytics = async () => {
   try {
-    localStorage.removeItem('qmsr_analytics')
+    await window.spark.kv.delete('qmsr_analytics')
   } catch (error) {
     console.error('Analytics clear error:', error)
   }
 }
 
-export const getAnalyticsSummary = () => {
-  const events = getAnalytics()
+export const getAnalyticsSummary = async () => {
+  const events = await getAnalytics()
   const summary = {
     totalEvents: events.length,
     assessmentStarts: events.filter(e => e.event === 'assessment_started').length,

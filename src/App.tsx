@@ -32,14 +32,22 @@ import {
 import { trackEvent } from '@/lib/analytics'
 
 function App() {
-  const [responses, setResponses] = useState<AssessmentResponses>(
-    questions.reduce((acc, q) => ({ ...acc, [q.id]: null }), {})
+  const [responses, setResponses] = useState<AssessmentResponses>(() =>
+    questions.reduce((acc, q) => ({ ...acc, [q.id]: null }), {} as AssessmentResponses)
   )
   const [showResults, setShowResults] = useState(false)
   const [resultData, setResultData] = useState<ResultData | null>(null)
+  const [showFloatingCTA, setShowFloatingCTA] = useState(false)
 
   useEffect(() => {
     trackEvent('assessment_started')
+    
+    const handleScroll = () => {
+      setShowFloatingCTA(window.scrollY > 400)
+    }
+    
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const allQuestionsAnswered = questions.every((q) => responses[q.id] !== null && responses[q.id] !== undefined)
@@ -70,7 +78,7 @@ function App() {
   }
 
   const handleReset = () => {
-    setResponses(questions.reduce((acc, q) => ({ ...acc, [q.id]: null }), {}))
+    setResponses(questions.reduce((acc, q) => ({ ...acc, [q.id]: null }), {} as AssessmentResponses))
     setShowResults(false)
     setResultData(null)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -171,7 +179,7 @@ function App() {
                 </div>
                 <RadioGroup
                   id={question.id}
-                  value={responses[question.id] || undefined}
+                  value={responses[question.id] ?? undefined}
                   onValueChange={(value) => handleResponseChange(question.id, value as ResponseValue)}
                   className="flex flex-col sm:flex-row gap-3"
                 >
@@ -387,6 +395,24 @@ function App() {
         </footer>
       </div>
       </div>
+
+      <AnimatePresence>
+        {showFloatingCTA && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-6 right-6 z-50 md:hidden no-print"
+          >
+            <Button size="lg" className="shadow-lg" asChild>
+              <a href="https://qms.coach/book" target="_blank" rel="noopener noreferrer">
+                <Phone className="mr-2" />
+                Book a Call
+              </a>
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }
