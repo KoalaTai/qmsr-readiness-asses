@@ -9,6 +9,13 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Toaster } from '@/components/ui/sonner'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   CheckCircle,
   WarningCircle,
   XCircle,
@@ -31,6 +38,17 @@ import {
 } from '@/lib/assessment-data'
 import { trackEvent } from '@/lib/analytics'
 
+const consultants = [
+  {
+    name: 'Ian Tovey',
+    bookingUrl: 'https://www.linkedin.com/services/page/85581b33a6099495a7/'
+  },
+  {
+    name: 'Neelank Tiwari',
+    bookingUrl: 'https://www.linkedin.com/services/page/7147803310385b2602/'
+  }
+]
+
 function App() {
   const [responses, setResponses] = useState<AssessmentResponses>(() =>
     questions.reduce((acc, q) => ({ ...acc, [q.id]: null }), {} as AssessmentResponses)
@@ -38,6 +56,7 @@ function App() {
   const [showResults, setShowResults] = useState(false)
   const [resultData, setResultData] = useState<ResultData | null>(null)
   const [showFloatingCTA, setShowFloatingCTA] = useState(false)
+  const [showConsultantDialog, setShowConsultantDialog] = useState(false)
 
   useEffect(() => {
     trackEvent('assessment_started')
@@ -106,6 +125,17 @@ function App() {
     trackEvent('results_emailed', { category: resultData.category })
   }
 
+  const handleBookCall = () => {
+    setShowConsultantDialog(true)
+    trackEvent('book_call_opened')
+  }
+
+  const handleConsultantSelect = (consultant: typeof consultants[0]) => {
+    trackEvent('consultant_selected', { consultantName: consultant.name })
+    window.open(consultant.bookingUrl, '_blank', 'noopener,noreferrer')
+    setShowConsultantDialog(false)
+  }
+
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'green':
@@ -135,15 +165,36 @@ function App() {
   return (
     <>
       <Toaster />
+      <Dialog open={showConsultantDialog} onOpenChange={setShowConsultantDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Choose a Consultant</DialogTitle>
+            <DialogDescription>
+              Select who you'd like to book a call with
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 mt-4">
+            {consultants.map((consultant) => (
+              <Button
+                key={consultant.name}
+                size="lg"
+                onClick={() => handleConsultantSelect(consultant)}
+                className="w-full justify-start"
+              >
+                <Phone className="mr-2" />
+                {consultant.name}
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
       <div className="min-h-screen bg-background py-8 px-4 md:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <header className="mb-8 text-center">
           <div className="flex justify-center mb-6 no-print">
-            <Button size="lg" asChild>
-              <a href="https://qms.coach/book" target="_blank" rel="noopener noreferrer">
-                <Phone className="mr-2" />
-                Book a Call
-              </a>
+            <Button size="lg" onClick={handleBookCall}>
+              <Phone className="mr-2" />
+              Book a Call
             </Button>
           </div>
           <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight mb-3">
@@ -358,11 +409,9 @@ function App() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 no-print">
-                  <Button size="lg" className="flex-1" asChild>
-                    <a href="https://qms.coach/book" target="_blank" rel="noopener noreferrer">
-                      <Phone className="mr-2" />
-                      Book a Call
-                    </a>
+                  <Button size="lg" className="flex-1" onClick={handleBookCall}>
+                    <Phone className="mr-2" />
+                    Book a Call
                   </Button>
                   <Button size="lg" variant="outline" onClick={handleEmail}>
                     <EnvelopeSimple className="mr-2" />
@@ -404,11 +453,9 @@ function App() {
             exit={{ opacity: 0, y: 20 }}
             className="fixed bottom-6 right-6 z-50 md:hidden no-print"
           >
-            <Button size="lg" className="shadow-lg" asChild>
-              <a href="https://qms.coach/book" target="_blank" rel="noopener noreferrer">
-                <Phone className="mr-2" />
-                Book a Call
-              </a>
+            <Button size="lg" className="shadow-lg" onClick={handleBookCall}>
+              <Phone className="mr-2" />
+              Book a Call
             </Button>
           </motion.div>
         )}
